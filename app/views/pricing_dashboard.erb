@@ -1,7 +1,6 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -20,41 +19,31 @@
         <div class="row">
           <form class="row g-3">
             <div class="col-md-2">
-              <label for="rental_location" class="form-label">Sucursal</label>
-              <select name="rental_location" class="form-select">
-                <option value="">Seleccione una sucursal</option>
-                <option value="1">Barcelona</option>
-                <option value="2">Menorca</option>
+              <label for="rental_location_dropdown" class="form-label">Sucursal</label>
+              <select name="rental_location_dropdown" class="form-select">
               </select>
             </div>
             <div class="col-md-2">
-              <label for="rate_type" class="form-label">Tipo de tarifa</label>
-              <select name="rate_type" class="form-select">
-                <option value="">Seleccione un tipo de tarifa</option>
-                <option value="1">Estándar</option>
-                <option value="2">Premium</option>
+              <label for="rate_type_dropdown" class="form-label">Tipo de tarifa</label>
+              <select name="rate_type_dropdown" class="form-select">
+                <option value="">Seleccione tipo de tarifa</option>
               </select>
             </div>
             <div class="col-md-3">
-              <label for="season_definition_id" class="form-label">Grupo de temporadas</label>
-              <select name="season_definition_id" class="form-select">
-                <option value="">Tarifas sin temporadas</option>
-                <option value="1">Temporadas scooters</option>
-                <option value="2">Temporadas turismos</option>
+              <label for="season_definition_dropdown" class="form-label">Grupo de temporadas</label>
+              <select name="season_definition_dropdown" class="form-select">
+                <option value="">Seleccione grupo de temporadas</option>
               </select>
             </div>
             <div class="col-md-2">
-              <label for="season_id" class="form-label">Temporada</label>
-              <select name="season_id" class="form-select">
+              <label for="season" class="form-label">Temporada</label>
+              <select name="season_dropdown" class="form-select">
                 <option value="">Seleccione la temporada</option>
-                <option value="1">Alta</option>
-                <option value="2">Media</option>
-                <option value="3">Baja</option>
               </select>
             </div>
             <div class="col-md-2">
-              <label for="duration_id" class="form-label">Duración</label>
-              <select name="duration_id" class="form-select">
+              <label for="duration_dropdown" class="form-label">Duración</label>
+              <select name="duration_dropdown" class="form-select">
                 <option value="">Seleccione la unidad</option>
                 <option value="month">Meses</option>
                 <option value="days">Días</option>
@@ -69,7 +58,6 @@
         </div>
       </div>
       <hr>
-      <!-- Tabla con las tarifas -->
       <div class="container">
         <div class="row">
           <div class="col-12">
@@ -109,7 +97,6 @@
           </div>
         </div>
       </div>
-      <!-- Acciones -->
       <div class="container">
         <div class="row">
           <div class="col-12">
