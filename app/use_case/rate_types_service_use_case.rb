@@ -11,10 +11,7 @@ module UseCase
 
 
     def perform()
-      data = self.load_data()
-      @logger.debug "RateTypeServiceUseCase - execute - data: #{data.inspect}"
-
-      return Result.new(success?: true, authorized?: true, data: data)
+      return Result.new(success?: true, authorized?: true, data: self.load_data)
     end
 
     private

@@ -3,7 +3,6 @@ module UseCase
 
     Result = Struct.new(:success?, :authorized?, :data, :message, keyword_init: true)
 
-
     def initialize(season_definitions_service, logger)
       @season_definitions_service = season_definitions_service
       @logger = logger
@@ -11,19 +10,13 @@ module UseCase
 
 
     def perform()
-
-      data = self.load_data()
-      @logger.debug "SeasonDefinitionsServiceUseCase - execute - data: #{data.inspect}"
-
-      return Result.new(success?: true, authorized?: true, data: data)
-
+      return Result.new(success?: true, authorized?: true, data: self.load_data())
     end
 
     private
 
     def load_data()
       @season_definitions_service.retrieve
-
     end
   end
 end
