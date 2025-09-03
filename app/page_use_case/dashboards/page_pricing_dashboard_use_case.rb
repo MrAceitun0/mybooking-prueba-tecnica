@@ -19,9 +19,9 @@ module PageUseCase
           unless processed_params[:authorized]
             return Result.new(success?: true, authorized?: false, message: 'Not authorized')
           end
-          
-          return Result.new(success?: true, authorized?: true, data: "Hola Mundo!")
-          
+
+          return Result.new(success?: true, authorized?: true, data: "Pricing Dashboard")
+
         end
   
         private
