@@ -6,9 +6,7 @@ module Service
         select distinct
           rl.id as rental_location_id,
           rl.name as rental_location_name
-        from rental_locations rl
-        join category_rental_location_rate_types crlrt on crlrt.rental_location_id = rl.id
-        order by rl.name;
+        from rental_locations rl;
       SQL
 
       Infraestructure::Query.run(sql)
