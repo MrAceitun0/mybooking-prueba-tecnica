@@ -12,25 +12,42 @@ document.addEventListener('DOMContentLoaded', function() {
     fetch('/api/rental-locations')
         .then(result => result.json())
         .then(data => {
-          fillOptions($rental_location_dropdown, data, 'rental_location_id', 'rental_location_name', 'Seleccione sucursal');
+          fillOptions($rental_location_dropdown, data, 'Seleccione sucursal');
           $rental_location_dropdown.prop('disabled', false);
     });
 
+    function fillOptions($select, rows, placeholder) {
+        $select.empty().append(`<option value="">${placeholder}</option>`);
+        rows.forEach(r => $select.append(`<option value="${r.id}">${r.name}</option>`));
+        $select.trigger('change.select2');
+      }
+
+    function resetDownstream(selects) {
+        selects.forEach($element => {
+            $element.prop('disabled', true);
+            $element.find('option:not(:first)').remove();
+            $element.trigger('change.select2');
+        });
+        $duration_dropdown.prop('disabled', true);
+    }
+
     $rental_location_dropdown.on('change', function() {
-        if (!$(this).val()) {
+        selectedRentalLocationId = $(this).val();
+        if (!selectedRentalLocationId) {
             resetDownstream([$rate_type_dropdown, $season_definition_dropdown, $season_dropdown]);
             return;
         }
-
-        fetch(`/api/rate-types`)
+    
+        fetch(`/api/rate-types?rental-location-id=${selectedRentalLocationId}`)
           .then(result => result.json())
           .then(data => {
-            fillOptions($rate_type_dropdown, data, 'rate_type_id', 'rate_type_name', 'Seleccione tipo de tarifa');
+            fillOptions($rate_type_dropdown, data, 'Seleccione tipo de tarifa');
             $rate_type_dropdown.prop('disabled', false);
         });
     });
-
+    
     $rate_type_dropdown.on('change', function() {
+        //TODO GET PARAM VALUES AND CALL API
         if (!$(this).val()) {
             resetDownstream([$season_definition_dropdown, $season_dropdown]);
             return;
@@ -75,27 +92,4 @@ document.addEventListener('DOMContentLoaded', function() {
         searching: false,
         info: false
     });
-
-    function fillOptions($select, rows, idKey, nameKey, placeholder) {
-        $select.empty().append(`<option value="">${placeholder}</option>`);
-        rows.forEach(r => {
-          $select.append(`<option value="${r[idKey]}">${r[nameKey]}</option>`);
-        });
-        $select.trigger('change.select2');
-      }
-    
-    function fillOptionsWithExtras($select, rows, placeholder) {
-        $select.empty().append(`<option value="">${placeholder}</option>`);
-        rows.forEach(r => $select.append(`<option value="${r.id}">${r.name}</option>`));
-        $select.trigger('change.select2');
-    }
-
-    function resetDownstream(selects) {
-        selects.forEach($element => {
-            $element.prop('disabled', true);
-            $element.find('option:not(:first)').remove();
-            $element.trigger('change.select2');
-        });
-        $duration_dropdown.prop('disabled', true);
-    }
 });
