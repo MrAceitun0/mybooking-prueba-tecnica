@@ -261,6 +261,12 @@ class PricingDashboard {
     this.clearSelect('season');
     this.clearSelect('unit');
     
+    // Disable submit button when unit is cleared
+    const submitBtn = document.getElementById('submit-btn');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+    }
+    
     if (!rateTypeId || !this.filters.selectedRentalLocation) return;
     
     try {
@@ -288,13 +294,24 @@ class PricingDashboard {
     
     this.data.seasons = [];
     this.clearSelect('season');
-    this.clearSelect('unit');
+    
+    const submitBtn = document.getElementById('submit-btn');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+    }
     
     if (!seasonDefinitionId || seasonDefinitionId === 'none') {
       if (this.currentStep === 3) {
         this.currentStep = 5;
         this.updateStep();
-        this.populateSelect('unit', this.data.units);
+        if (this.data.units && this.data.units.length > 0) {
+          this.populateSelect('unit', this.data.units);
+        } else {
+          this.getUnits().then(units => {
+            this.data.units = units;
+            this.populateSelect('unit', units);
+          });
+        }
       }
       return;
     }
@@ -321,17 +338,35 @@ class PricingDashboard {
     this.filters.selectedSeason = seasonId;
     this.filters.selectedUnit = '';
     
-    this.clearSelect('unit');
-    
-    if (this.currentStep === 4) {
-      this.currentStep = 5;
-      this.updateStep();
-      this.populateSelect('unit', this.data.units);
+    const submitBtn = document.getElementById('submit-btn');
+    if (submitBtn) {
+      submitBtn.disabled = true;
     }
+    
+      if (this.currentStep === 4) {
+        this.currentStep = 5;
+        this.updateStep();
+        if (this.data.units && this.data.units.length > 0) {
+          this.populateSelect('unit', this.data.units);
+        } else {
+          this.getUnits().then(units => {
+            this.data.units = units;
+            this.populateSelect('unit', units);
+          });
+        }
+      }
   }
 
   handleUnitChange(unitId) {
     this.filters.selectedUnit = unitId;
+    
+    // Enable submit button when unit is selected
+    if (unitId) {
+      const submitBtn = document.getElementById('submit-btn');
+      if (submitBtn) {
+        submitBtn.disabled = false;
+      }
+    }
   }
 
   handleNextStep() {

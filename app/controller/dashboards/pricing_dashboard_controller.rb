@@ -8,7 +8,7 @@ module Controller
             use_case = PageUseCase::Dashboards::PagePricingDashboardUseCase.new(logger)
             result = use_case.perform(params)
   
-            @title = "Pricing Dashboard page"
+            @title = "Listado de Tarifas"
   
             if result.success?
               erb :pricing_dashboard_simple
