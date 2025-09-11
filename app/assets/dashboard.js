@@ -47,7 +47,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     $rate_type_dropdown.on('change', function() {
-        //TODO GET PARAM VALUES AND CALL API
         if (!$(this).val()) {
             resetDownstream([$season_definition_dropdown, $season_dropdown]);
             return;
