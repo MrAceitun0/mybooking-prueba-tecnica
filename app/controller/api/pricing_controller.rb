@@ -85,7 +85,6 @@ module Controller
             season_id = params['season-id']
             unit_id = params['unit-id'].to_i
 
-            # Convert unit_id to unit name
             unit_name = case unit_id
             when 1 then :months
             when 2 then :days
@@ -98,7 +97,6 @@ module Controller
             halt 400, { message: "The 'rate-type-id' parameter is required." }.to_json unless rate_type_id
             halt 400, { message: "The 'unit-id' parameter is required." }.to_json unless unit_id
 
-            # Get price definitions based on filters
             price_definition_ids = ::Model::CategoryRentalLocationRateType
               .all(rental_location_id: rental_location_id)
               .all(rate_type_id: rate_type_id)
@@ -106,7 +104,6 @@ module Controller
 
             halt 404, { message: "No price definitions found for the given filters." }.to_json if price_definition_ids.empty?
 
-            # Filter by season definition if provided
             if season_definition_id && season_definition_id != 'none'
               price_definitions = ::Model::PriceDefinition.all(:id => price_definition_ids, :season_definition_id => season_definition_id.to_i)
             else
@@ -115,10 +112,8 @@ module Controller
 
             halt 404, { message: "No price definitions found for the given season definition." }.to_json if price_definitions.empty?
 
-            # Get vehicles and their prices
             vehicles_data = []
             price_definitions.each do |price_def|
-              # Get category (vehicle) information from the relationship
               category_rental_location_rate_type = ::Model::CategoryRentalLocationRateType.first(
                 :price_definition_id => price_def.id,
                 :rental_location_id => rental_location_id,
@@ -129,15 +124,12 @@ module Controller
               category = category_rental_location_rate_type.category
               next unless category
 
-              # Get prices for this vehicle
               prices = ::Model::Price.all(:price_definition_id => price_def.id)
               
-              # Filter by season if provided
               if season_id && season_id != ''
                 prices = prices.select { |p| p.season_id == season_id.to_i }
               end
               
-              # Filter by unit if provided
               if unit_id
                 prices = prices.select { |p| p.time_measurement == unit_name }
               end
