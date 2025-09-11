@@ -1,117 +1,243 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+'use client';
 
+import { useState } from 'react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { Loader2, Search, ArrowLeft, RotateCw } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import type { Branch, RateType, SeasonSet, Season, Unit } from '@/lib/types';
+import { Badge } from './ui/badge';
+import { Separator } from './ui/separator';
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-    <link href="https://cdn.datatables.net/2.3.3/css/dataTables.dataTables.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" integrity="sha512-nMNlpuaDPrqlEls3IX/Q56H36qvBASwb3ipuo3MxeWbsQB1881ox0cRv7UPTgBlriqoynt35KjEwgGUeUXIPnw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+interface FleetFiltersProps {
+  branches: Branch[];
+  rateTypes: RateType[];
+  seasonSets: SeasonSet[];
+  seasons: Season[];
+  units: Unit[];
+  selectedBranch: string;
+  selectedRateType: string;
+  selectedSeasonSet: string;
+  selectedSeason: string;
+  selectedUnit: string;
+  isLoadingBranches: boolean;
+  isLoadingRateTypes: boolean;
+  isLoadingSeasonSets: boolean;
+  isLoadingSeasons: boolean;
+  isLoadingUnits: boolean;
+  onBranchChange: (value: string) => void;
+  onRateTypeChange: (value: string) => void;
+  onSeasonSetChange: (value: string) => void;
+  onSeasonChange: (value: string) => void;
+  onUnitChange: (value: string) => void;
+  onSubmit: () => void;
+  onReset: () => void;
+}
 
-    <title>Pricing Dashboard</title>
-  </head>
-  <body>
+const FleetFilters: React.FC<FleetFiltersProps> = ({
+  branches,
+  rateTypes,
+  seasonSets,
+  seasons,
+  units,
+  selectedBranch,
+  selectedRateType,
+  selectedSeasonSet,
+  selectedSeason,
+  selectedUnit,
+  isLoadingBranches,
+  isLoadingRateTypes,
+  isLoadingSeasonSets,
+  isLoadingSeasons,
+  isLoadingUnits,
+  onBranchChange,
+  onRateTypeChange,
+  onSeasonSetChange,
+  onSeasonChange,
+  onUnitChange,
+  onSubmit,
+  onReset,
+}) => {
+  const [currentStep, setCurrentStep] = useState(1);
+  const totalSteps = 5;
 
-    <div class="content">
-      <div class="container">
-        <div class="row">
-          <form class="row g-3">
-            <div class="col-md-2">
-              <label for="rental_location_dropdown" class="form-label">Sucursal</label>
-              <select name="rental_location_dropdown" class="form-select">
-              </select>
+  const handleNextStep = () => {
+    if (currentStep < totalSteps) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const handlePreviousStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const handleReset = () => {
+    setCurrentStep(1);
+    onReset();
+  };
+
+  const handleSelectChange = (setter: (value: string) => void) => (value: string) => {
+    setter(value);
+    handleNextStep();
+  };
+  
+  const getStepTitle = () => {
+    switch (currentStep) {
+      case 1: return 'Selecciona una sucursal afro';
+      case 2: return 'Selecciona un tipo de tarifa';
+      case 3: return 'Selecciona un grupo de temporadas';
+      case 4: return 'Selecciona una temporada';
+      case 5: return 'Selecciona un afr';
+      default: return 'Encuentra tu vehículo';
+    }
+  }
+
+  const isNextDisabled = () => {
+    switch (currentStep) {
+      case 1: return !selectedBranch;
+      case 2: return !selectedRateType;
+      case 3: return !selectedSeasonSet;
+      case 4: return selectedSeasonSet !== 'none' && !selectedSeason;
+      case 5: return !selectedUnit;
+      default: return true;
+    }
+  };
+
+  const selectedBranchName = branches.find(b => b.id === selectedBranch)?.name;
+  const selectedRateTypeName = rateTypes.find(rt => rt.id === selectedRateType)?.name;
+  const selectedSeasonSetName = seasonSets.find(ss => ss.id === selectedSeasonSet)?.name ?? (selectedSeasonSet === 'none' ? 'No Season' : undefined);
+  const selectedSeasonName = seasons.find(s => s.id === selectedSeason)?.name;
+  const selectedUnitName = units.find(u => u.id === selectedUnit)?.name;
+
+  const selections = [
+    { label: 'Branch', value: selectedBranchName, step: 1 },
+    { label: 'Rate Type', value: selectedRateTypeName, step: 2 },
+    { label: 'Season Set', value: selectedSeasonSetName, step: 3 },
+    { label: 'Season', value: selectedSeasonName, step: 4 },
+    { label: 'Unit', value: selectedUnitName, step: 5 },
+  ];
+  
+  const completedSelections = selections.filter(s => s.step < currentStep && s.value);
+
+  return (
+    <Card className="shadow-lg">
+      <CardHeader>
+        <CardTitle>{getStepTitle()}</CardTitle>
+        <Progress value={(currentStep / totalSteps) * 100} className="w-full mt-2" />
+      </CardHeader>
+      <CardContent className="min-h-[120px] space-y-4">
+        {completedSelections.length > 0 && (
+          <div className="space-y-3">
+            <div className='flex flex-wrap gap-2'>
+              {completedSelections.map((selection) => (
+                <div key={selection.step} className="flex items-center gap-2">
+                  <Badge variant="secondary" className='text-sm'>
+                    <span className="font-semibold mr-1">{selection.label}:</span>
+                    {selection.value}
+                  </Badge>
+                </div>
+              ))}
             </div>
-            <div class="col-md-2">
-              <label for="rate_type_dropdown" class="form-label">Tipo de tarifa</label>
-              <select name="rate_type_dropdown" class="form-select">
-                <option value="">Seleccione tipo de tarifa</option>
-              </select>
-            </div>
-            <div class="col-md-3">
-              <label for="season_definition_dropdown" class="form-label">Grupo de temporadas</label>
-              <select name="season_definition_dropdown" class="form-select">
-                <option value="">Tarifas sin temporadas</option>
-              </select>
-            </div>
-            <div class="col-md-2">
-              <label for="season" class="form-label">Temporada</label>
-              <select name="season_dropdown" class="form-select">
-                <option value="">Seleccione la temporada</option>
-              </select>
-            </div>
-            <div class="col-md-2">
-              <label for="duration_dropdown" class="form-label">Duración</label>
-              <select name="duration_dropdown" class="form-select">
-                <option value="">Seleccione la unidad</option>
-                <option value="month">Meses</option>
-                <option value="days">Días</option>
-                <option value="hours">Horas</option>
-                <option value="minutes">Minutos</option>
-              </select>
-            </div>
-            <div class="col-md-1">
-              <button class="btn btn-primary w-100" style="margin-top: 32px;">Filtrar</button>
-            </div>
-          </form>
-        </div>
-      </div>
-      <hr>
-      <div class="container">
-        <div class="row">
-          <div class="col-12">
-            <table id="prices_table" class="table table-hover">
-              <thead>
-                <tr>
-                  <th scope="col">Categoría</th>
-                  <th scope="col" class="text-right">1</th>
-                  <th scope="col" class="text-right">2</th>
-                  <th scope="col" class="text-right">4</th>
-                  <th scope="col" class="text-right">8</th>
-                  <th scope="col" class="text-right">15</th>
-                  <th scope="col" class="text-right">30</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <th scope="row">A</th>
-                  <td class="text-right">60</td>
-                  <td class="text-right">55</td>
-                  <td class="text-right">45</td>
-                  <td class="text-right">-</td>
-                  <td class="text-right">40</td>
-                  <td class="text-right">-</td>
-                </tr>
-                <tr>
-                  <th scope="row">A1</th>
-                  <td class="text-right">70</td>
-                  <td class="text-right">65</td>
-                  <td class="text-right">55</td>
-                  <td class="text-right">50</td>
-                  <td class="text-right">45</td>
-                  <td class="text-right">30</td>
-                </tr>
-              </tbody>
-            </table>
+            <Separator />
           </div>
-        </div>
-      </div>
-      <div class="container">
-        <div class="row">
-          <div class="col-12">
-            <button class="btn btn-secondary w-100">Importar</button>
+        )}
+
+        {currentStep === 1 && (
+          <div className="space-y-2">
+            <Label htmlFor="branch">Branch</Label>
+            <Select onValueChange={handleSelectChange(onBranchChange)} value={selectedBranch} disabled={isLoadingBranches}>
+              <SelectTrigger id="branch">
+                {isLoadingBranches ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <SelectValue placeholder="Select a branch">{selectedBranchName}</SelectValue>}
+              </SelectTrigger>
+              <SelectContent>
+                {branches.map((branch) => <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </div>
-      </div> 
-    </div>
+        )}
 
-    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.0/dist/jquery.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
-    <script src="https://cdn.datatables.net/2.3.3/js/dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/2.3.3/js/dataTables.bootstrap5.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js" integrity="sha512-2ImtlRlf2VVmiGZsjm9bEyhjGW4dU7B6TNwh/hx/iSByxNENtj3WVE6o/9Lj4TJeVXPi4bnOIMXFIJJAeufa0A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        {currentStep === 2 && (
+          <div className="space-y-2">
+            <Label htmlFor="rate-type">Rate Type</Label>
+            <Select onValueChange={handleSelectChange(onRateTypeChange)} value={selectedRateType} disabled={isLoadingRateTypes}>
+              <SelectTrigger id="rate-type">
+                {isLoadingRateTypes ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <SelectValue placeholder="Select a rate type">{selectedRateTypeName}</SelectValue>}
+              </SelectTrigger>
+              <SelectContent>
+                {rateTypes.map((rateType) => <SelectItem key={rateType.id} value={rateType.id}>{rateType.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
-    <script src="/dashboard.js"></script>
+        {currentStep === 3 && (
+          <div className="space-y-2">
+            <Label htmlFor="season-set">Season Set</Label>
+            <Select onValueChange={handleSelectChange(onSeasonSetChange)} value={selectedSeasonSet} disabled={isLoadingSeasonSets}>
+              <SelectTrigger id="season-set">
+                {isLoadingSeasonSets ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <SelectValue placeholder="Select a season set">{selectedSeasonSetName}</SelectValue>}
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">No Season</SelectItem>
+                {seasonSets.map((set) => <SelectItem key={set.id} value={set.id}>{set.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
-  </body>
-</html>
+        {currentStep === 4 && (
+          <div className="space-y-2">
+            <Label htmlFor="season">Season</Label>
+            <Select onValueChange={handleSelectChange(onSeasonChange)} value={selectedSeason} disabled={isLoadingSeasons || selectedSeasonSet === 'none'}>
+              <SelectTrigger id="season">
+                {isLoadingSeasons ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <SelectValue placeholder="Select a season">{selectedSeasonName}</SelectValue>}
+              </SelectTrigger>
+              <SelectContent>
+                {seasons.map((season) => <SelectItem key={season.id} value={season.id}>{season.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+        
+        {currentStep === 5 && (
+            <div className="space-y-2">
+            <Label htmlFor="unit">Unit</Label>
+            <Select onValueChange={onUnitChange} value={selectedUnit} disabled={isLoadingUnits}>
+                <SelectTrigger id="unit">
+                {isLoadingUnits ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <SelectValue placeholder="Select a unit">{selectedUnitName}</SelectValue>}
+                </SelectTrigger>
+                <SelectContent>
+                {units.map((unit) => <SelectItem key={unit.id} value={unit.id}>{unit.name}</SelectItem>)}
+                </SelectContent>
+            </Select>
+            </div>
+        )}
+      </CardContent>
+      <CardFooter className="flex justify-between">
+        <div>
+            <Button variant="outline" onClick={handleReset}><RotateCw className="mr-2 h-4 w-4" /> Start Over</Button>
+        </div>
+        <div className="flex gap-2">
+            <Button variant="ghost" onClick={handlePreviousStep} disabled={currentStep === 1}><ArrowLeft className="mr-2 h-4 w-4" /> Back</Button>
+            {currentStep < totalSteps ? (
+                <Button onClick={handleNextStep} disabled={isNextDisabled()}>Next</Button>
+            ) : (
+                <Button onClick={onSubmit} disabled={isNextDisabled()}><Search className="mr-2 h-4 w-4" /> Find Cars</Button>
+            )}
+        </div>
+      </CardFooter>
+    </Card>
+  );
+};
+
+export default FleetFilters;

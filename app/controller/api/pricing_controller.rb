@@ -62,17 +62,17 @@ module Controller
 
         app.get '/api/seasons' do
 
-          service = Service::ListSeasonsService.new
-          use_case = UseCase::SeasonsServiceUseCase.new(service, logger)
-          result = use_case.perform()
+          begin
+            season_definition_id = params['season-definition-id'].to_i
+            halt 400, { message: "The 'season-definition-id' parameter is required." }.to_json unless season_definition_id
 
-          if result.success?
+            seasons = ::Model::Season.all(season_definition_id: season_definition_id)            
+            halt 404, { message: "Seasons for season definition '#{season_definition_id}' not found." }.to_json if seasons.empty?
+
             content_type :json
-            result.data.to_json
-          elsif !result.authorized?
-            halt 401
-          else
-            halt 400, result.message.to_json
+            seasons.to_json
+          rescue => e
+            halt 500, { message: "Error al cargar las temporadas: #{e.message}" }.to_json
           end
         end
 

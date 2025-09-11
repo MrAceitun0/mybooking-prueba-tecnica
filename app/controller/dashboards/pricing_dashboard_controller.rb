@@ -11,7 +11,7 @@ module Controller
             @title = "Pricing Dashboard page"
   
             if result.success?
-              erb :pricing_dashboard
+              erb :pricing_dashboard_simple
             else
               @message = result.message
               erb :error_page
