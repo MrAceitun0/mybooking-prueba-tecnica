@@ -8,77 +8,73 @@ module Controller
         require_relative '../../model/rate_type.rb'
         require_relative '../../model/season_definition.rb'
         require_relative '../../model/season.rb'
+        require_relative '../../utils/error_handler.rb'
+        require_relative '../../utils/controller_utils.rb'
 
         app.get '/api/rental-locations' do
-          begin
+          Utils::ControllerUtils.safe_execute('cargar las sucursales') do
             rental_locations = ::Model::RentalLocation.all
-            content_type :json
-            rental_locations.to_json
-          rescue => e
-            halt 500, { message: "Error al cargar las sucursales: #{e.message}" }.to_json
+            Utils::ControllerUtils.json_response(rental_locations)
           end
         end
 
         app.get '/api/rate-types' do
-
-          begin
+          Utils::ControllerUtils.safe_execute('cargar las tarifas') do
+            Utils::ControllerUtils.validate_required_params(params, 'rental-location-id')
+            Utils::ControllerUtils.validate_integer_params(params, 'rental-location-id')
+            
             rental_location_id = params['rental-location-id'].to_i
-            halt 400, { message: "The 'rental-location-id' parameter is required." }.to_json unless rental_location_id
             rate_type_ids = ::Model::CategoryRentalLocationRateType.all(rental_location_id: rental_location_id).map(&:rate_type_id).uniq
-            halt 404, { message: "Rate types for location '#{rental_location_id}' not found." }.to_json if rate_type_ids.empty?
+            
+            Utils::ControllerUtils.handle_empty_results('rate types', "location '#{rental_location_id}'") if rate_type_ids.empty?
+            
             rate_types = ::Model::RateType.all(:id => rate_type_ids)
-            content_type :json
-            rate_types.to_json
-          rescue => e
-            halt 500, { message: "Error al cargar las tarifas: #{e.message}" }.to_json
+            Utils::ControllerUtils.json_response(rate_types)
           end
         end
 
         app.get '/api/season-definitions' do
-
-          begin
+          Utils::ControllerUtils.safe_execute('cargar los grupos de temporada') do
+            Utils::ControllerUtils.validate_required_params(params, 'rental-location-id', 'rate-type-id')
+            Utils::ControllerUtils.validate_integer_params(params, 'rental-location-id', 'rate-type-id')
+            
             rental_location_id = params['rental-location-id'].to_i
-            halt 400, { message: "The 'rental-location-id' parameter is required." }.to_json unless rental_location_id
-
             rate_type_id = params['rate-type-id'].to_i
-            halt 400, { message: "The 'rate-type-id' parameter is required." }.to_json unless rate_type_id
             
             price_definition_ids = ::Model::CategoryRentalLocationRateType
               .all(rental_location_id: rental_location_id)
               .all(rate_type_id: rate_type_id)
               .map(&:price_definition_id).uniq
-            halt 404, { message: "Price Definitions for location '#{rental_location_id}' and rate type '#{rate_type_id}' not found." }.to_json if price_definition_ids.empty?
+            
+            Utils::ErrorHandler.handle_empty_results('price definitions', "location '#{rental_location_id}' and rate type '#{rate_type_id}'") if price_definition_ids.empty?
 
             season_definition_ids = ::Model::PriceDefinition.all(:id => price_definition_ids).map(&:season_definition_id).compact.uniq
-            halt 404, { message: "Season Definitions for location '#{rental_location_id}' and rate type '#{rate_type_id}' not found." }.to_json if season_definition_ids.empty?
+            Utils::ErrorHandler.handle_empty_results('season definitions', "location '#{rental_location_id}' and rate type '#{rate_type_id}'") if season_definition_ids.empty?
             
             season_definitions = ::Model::SeasonDefinition.all(:id => season_definition_ids)
-            content_type :json
-            season_definitions.to_json
-          rescue => e
-            halt 500, { message: "Error al cargar los grupos de temporada: #{e.message}" }.to_json
+            Utils::ControllerUtils.json_response(season_definitions)
           end
         end
 
         app.get '/api/seasons' do
-
-          begin
+          Utils::ControllerUtils.safe_execute('cargar las temporadas') do
+            Utils::ControllerUtils.validate_required_params(params, 'season-definition-id')
+            Utils::ControllerUtils.validate_integer_params(params, 'season-definition-id')
+            
             season_definition_id = params['season-definition-id'].to_i
-            halt 400, { message: "The 'season-definition-id' parameter is required." }.to_json unless season_definition_id
+            seasons = ::Model::Season.all(season_definition_id: season_definition_id)
+            
+            Utils::ErrorHandler.handle_empty_results('seasons', "season definition '#{season_definition_id}'") if seasons.empty?
 
-            seasons = ::Model::Season.all(season_definition_id: season_definition_id)            
-            halt 404, { message: "Seasons for season definition '#{season_definition_id}' not found." }.to_json if seasons.empty?
-
-            content_type :json
-            seasons.to_json
-          rescue => e
-            halt 500, { message: "Error al cargar las temporadas: #{e.message}" }.to_json
+            Utils::ControllerUtils.json_response(seasons)
           end
         end
 
         app.get '/api/vehicles' do
-
-          begin
+          Utils::ControllerUtils.safe_execute('cargar los vehículos') do
+            Utils::ControllerUtils.validate_required_params(params, 'rental-location-id', 'rate-type-id', 'unit-id')
+            Utils::ControllerUtils.validate_integer_params(params, 'rental-location-id', 'rate-type-id', 'unit-id')
+            
             rental_location_id = params['rental-location-id'].to_i
             rate_type_id = params['rate-type-id'].to_i
             season_definition_id = params['season-definition-id']
@@ -93,16 +89,12 @@ module Controller
             else :days
             end
 
-            halt 400, { message: "The 'rental-location-id' parameter is required." }.to_json unless rental_location_id
-            halt 400, { message: "The 'rate-type-id' parameter is required." }.to_json unless rate_type_id
-            halt 400, { message: "The 'unit-id' parameter is required." }.to_json unless unit_id
-
             price_definition_ids = ::Model::CategoryRentalLocationRateType
               .all(rental_location_id: rental_location_id)
               .all(rate_type_id: rate_type_id)
               .map(&:price_definition_id).uniq
 
-            halt 404, { message: "No price definitions found for the given filters." }.to_json if price_definition_ids.empty?
+            Utils::ControllerUtils.handle_empty_results('price definitions', 'the given filters') if price_definition_ids.empty?
 
             if season_definition_id && season_definition_id != 'none'
               price_definitions = ::Model::PriceDefinition.all(:id => price_definition_ids, :season_definition_id => season_definition_id.to_i)
@@ -110,7 +102,7 @@ module Controller
               price_definitions = ::Model::PriceDefinition.all(:id => price_definition_ids)
             end
 
-            halt 404, { message: "No price definitions found for the given season definition." }.to_json if price_definitions.empty?
+            Utils::ControllerUtils.handle_empty_results('price definitions', 'the given season definition') if price_definitions.empty?
 
             vehicles_data = []
             price_definitions.each do |price_def|
@@ -152,12 +144,9 @@ module Controller
               vehicles_data << vehicle_info
             end
 
-            halt 404, { message: "No vehicles found for your conditions." }.to_json if vehicles_data.empty?
+            Utils::ControllerUtils.handle_empty_results('vehicles', 'your conditions') if vehicles_data.empty?
 
-            content_type :json
-            vehicles_data.to_json
-          rescue => e
-            halt 500, { message: "Error al cargar los vehículos: #{e.message}" }.to_json
+            Utils::ControllerUtils.json_response(vehicles_data)
           end
         end
 
