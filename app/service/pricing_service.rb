@@ -13,8 +13,6 @@ module Service
       end
 
       def get_rate_types(rental_location_id)
-        validate_rental_location_id(rental_location_id)
-        
         begin
           rate_type_ids = ::Model::CategoryRentalLocationRateType
             .all(rental_location_id: rental_location_id)
@@ -31,9 +29,6 @@ module Service
       end
 
       def get_season_definitions(rental_location_id, rate_type_id)
-        validate_rental_location_id(rental_location_id)
-        validate_rate_type_id(rate_type_id)
-        
         begin
           price_definition_ids = ::Model::CategoryRentalLocationRateType
             .all(rental_location_id: rental_location_id)
@@ -59,8 +54,6 @@ module Service
       end
 
       def get_seasons(season_definition_id)
-        validate_season_definition_id(season_definition_id)
-        
         begin
           seasons = ::Model::Season.all(season_definition_id: season_definition_id)
           raise Utils::NotFoundError.new('seasons', "season definition '#{season_definition_id}'") if seasons.empty?
@@ -71,10 +64,6 @@ module Service
       end
 
       def get_vehicles(rental_location_id, rate_type_id, unit_id, season_definition_id = nil, season_id = nil)
-        validate_rental_location_id(rental_location_id)
-        validate_rate_type_id(rate_type_id)
-        validate_unit_id(unit_id)
-        
         begin
           unit_name = get_unit_name(unit_id)
           
@@ -104,27 +93,6 @@ module Service
       end
 
       private
-
-      def validate_rental_location_id(rental_location_id)
-        raise Utils::ValidationError.new("Rental location ID is required") if rental_location_id.nil? || rental_location_id.to_s.strip.empty?
-        raise Utils::ValidationError.new("Rental location ID must be a valid integer") unless rental_location_id.to_s.match?(/^\d+$/)
-      end
-
-      def validate_rate_type_id(rate_type_id)
-        raise Utils::ValidationError.new("Rate type ID is required") if rate_type_id.nil? || rate_type_id.to_s.strip.empty?
-        raise Utils::ValidationError.new("Rate type ID must be a valid integer") unless rate_type_id.to_s.match?(/^\d+$/)
-      end
-
-      def validate_season_definition_id(season_definition_id)
-        raise Utils::ValidationError.new("Season definition ID is required") if season_definition_id.nil? || season_definition_id.to_s.strip.empty?
-        raise Utils::ValidationError.new("Season definition ID must be a valid integer") unless season_definition_id.to_s.match?(/^\d+$/)
-      end
-
-      def validate_unit_id(unit_id)
-        raise Utils::ValidationError.new("Unit ID is required") if unit_id.nil? || unit_id.to_s.strip.empty?
-        raise Utils::ValidationError.new("Unit ID must be a valid integer") unless unit_id.to_s.match?(/^\d+$/)
-        raise Utils::ValidationError.new("Unit ID must be between 1 and 4") unless (1..4).include?(unit_id.to_i)
-      end
 
       def get_unit_name(unit_id)
         case unit_id.to_i
