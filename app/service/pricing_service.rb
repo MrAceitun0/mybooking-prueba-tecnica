@@ -7,6 +7,7 @@ module Service
           locations = ::Model::RentalLocation.all
           raise Utils::NotFoundError.new('rental locations') if locations.empty?
           locations
+
         rescue DataObjects::Error => e
           raise Utils::DatabaseError.new("Failed to fetch rental locations: #{e.message}")
         end
@@ -18,11 +19,9 @@ module Service
             .all(rental_location_id: rental_location_id)
             .map(&:rate_type_id)
             .uniq
-          
           raise Utils::NotFoundError.new('rate types', "location '#{rental_location_id}'") if rate_type_ids.empty?
-          
-          rate_types = ::Model::RateType.all(:id => rate_type_ids)
-          rate_types
+          ::Model::RateType.all(:id => rate_type_ids)
+
         rescue DataObjects::Error => e
           raise Utils::DatabaseError.new("Failed to fetch rate types: #{e.message}")
         end
@@ -30,24 +29,13 @@ module Service
 
       def get_season_definitions(rental_location_id, rate_type_id)
         begin
-          price_definition_ids = ::Model::CategoryRentalLocationRateType
-            .all(rental_location_id: rental_location_id)
-            .all(rate_type_id: rate_type_id)
-            .map(&:price_definition_id)
-            .uniq
-          
+          price_definition_ids = get_price_definition_ids(rental_location_id, rate_type_id)
           raise Utils::NotFoundError.new('price definitions', "location '#{rental_location_id}' and rate type '#{rate_type_id}'") if price_definition_ids.empty?
 
-          season_definition_ids = ::Model::PriceDefinition
-            .all(:id => price_definition_ids)
-            .map(&:season_definition_id)
-            .compact
-            .uniq
-          
+          season_definition_ids = get_season_definition_ids(price_definition_ids)
           raise Utils::NotFoundError.new('season definitions', "location '#{rental_location_id}' and rate type '#{rate_type_id}'") if season_definition_ids.empty?
           
-          season_definitions = ::Model::SeasonDefinition.all(:id => season_definition_ids)
-          season_definitions
+          ::Model::SeasonDefinition.all(:id => season_definition_ids)
         rescue DataObjects::Error => e
           raise Utils::DatabaseError.new("Failed to fetch season definitions: #{e.message}")
         end
@@ -67,20 +55,10 @@ module Service
         begin
           unit_name = get_unit_name(unit_id)
           
-          price_definition_ids = ::Model::CategoryRentalLocationRateType
-            .all(rental_location_id: rental_location_id)
-            .all(rate_type_id: rate_type_id)
-            .map(&:price_definition_id)
-            .uniq
-
+          price_definition_ids = get_price_definition_ids(rental_location_id, rate_type_id)
           raise Utils::NotFoundError.new('price definitions', 'the given filters') if price_definition_ids.empty?
 
-          price_definitions = if season_definition_id && season_definition_id != 'none'
-            ::Model::PriceDefinition.all(:id => price_definition_ids, :season_definition_id => season_definition_id.to_i)
-          else
-            ::Model::PriceDefinition.all(:id => price_definition_ids)
-          end
-
+          price_definitions = get_price_definitions_by_season_definition(price_definition_ids, season_definition_id)
           raise Utils::NotFoundError.new('price definitions', 'the given season definition') if price_definitions.empty?
 
           vehicles_data = build_vehicles_data(price_definitions, rental_location_id, rate_type_id, unit_name, season_id)
@@ -94,16 +72,40 @@ module Service
 
       private
 
+      def get_price_definition_ids(rental_location_id, rate_type_id)
+        price_definition_ids = ::Model::CategoryRentalLocationRateType
+            .all(rental_location_id: rental_location_id)
+            .all(rate_type_id: rate_type_id)
+            .map(&:price_definition_id)
+            .uniq
+      end
+
+      def get_season_definition_ids(price_definition_ids)
+        season_definition_ids = ::Model::PriceDefinition
+            .all(:id => price_definition_ids)
+            .map(&:season_definition_id)
+            .compact
+            .uniq
+      end
+
       def get_unit_name(unit_id)
         case unit_id.to_i
-        when 1 then :months
-        when 2 then :days
-        when 3 then :hours
-        when 4 then :minutes
-        else :days
+          when 1 then :months
+          when 2 then :days
+          when 3 then :hours
+          when 4 then :minutes
+          else :days
         end
       end
 
+      def get_price_definitions_by_season_definition(price_definition_ids, season_definition_id)
+        if season_definition_id && season_definition_id != 'none'
+          ::Model::PriceDefinition.all(:id => price_definition_ids, :season_definition_id => season_definition_id.to_i)
+        else
+          ::Model::PriceDefinition.all(:id => price_definition_ids)
+        end
+      end
+      
       def build_vehicles_data(price_definitions, rental_location_id, rate_type_id, unit_name, season_id)
         vehicles_data = []
         
