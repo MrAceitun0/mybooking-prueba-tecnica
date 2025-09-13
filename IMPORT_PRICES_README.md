@@ -37,6 +37,6 @@ A1,Barcelona,Estándar,Alta,8,35.00,2
 
 ### Importar desde archivo CSV:
 
-```bash
-rake import:prices[path/to/your/file.csv]
+```zsh
+rake "import:prices[path/to/your/file.csv]"
 ```
