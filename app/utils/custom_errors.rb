@@ -1,0 +1,68 @@
+module Utils
+  # Base exception class for all application errors
+  class ApplicationError < StandardError
+    attr_reader :status, :code
+    
+    def initialize(message, status = 500, code = 'INTERNAL_SERVER_ERROR')
+      super(message)
+      @status = status
+      @code = code
+    end
+  end
+
+  # Validation errors (400)
+  class ValidationError < ApplicationError
+    def initialize(message, field = nil)
+      super(message, 400, 'VALIDATION_ERROR')
+      @field = field
+    end
+  end
+
+  # Not found errors (404)
+  class NotFoundError < ApplicationError
+    def initialize(resource, identifier = nil)
+      message = if identifier
+        "#{resource.capitalize} '#{identifier}' not found."
+      else
+        "#{resource.capitalize} not found."
+      end
+      super(message, 404, 'NOT_FOUND')
+    end
+  end
+
+  # Database errors (500)
+  class DatabaseError < ApplicationError
+    def initialize(message)
+      super(message, 500, 'DATABASE_ERROR')
+    end
+  end
+
+  # Business logic errors (422)
+  class BusinessLogicError < ApplicationError
+    def initialize(message)
+      super(message, 422, 'BUSINESS_LOGIC_ERROR')
+    end
+  end
+
+  # Unauthorized errors (401)
+  class UnauthorizedError < ApplicationError
+    def initialize(message = "Unauthorized access")
+      super(message, 401, 'UNAUTHORIZED')
+    end
+  end
+
+  # Forbidden errors (403)
+  class ForbiddenError < ApplicationError
+    def initialize(message = "Access forbidden")
+      super(message, 403, 'FORBIDDEN')
+    end
+  end
+
+  # Conflict errors (409)
+  class ConflictError < ApplicationError
+    def initialize(message, resource = nil)
+      error_message = resource ? "#{resource} already exists" : message
+      super(error_message, 409, 'CONFLICT')
+    end
+  end
+end

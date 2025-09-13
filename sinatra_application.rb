@@ -1,7 +1,11 @@
 require_relative 'lib/autoregister'
+require_relative 'app/utils/custom_errors'
+require_relative 'app/utils/exception_handler'
 
 module Sinatra
   class Application < Sinatra::Base
+
+    include Utils::ExceptionHandler
 
     configure do
       set :root, File.expand_path('..', __FILE__)
@@ -9,7 +13,6 @@ module Sinatra
       set :public_folder, File.join(root, 'app/assets')
     end
 
-    # Include the routes defined in the controller
     register Sinatra::AutoRegister
 
   end
