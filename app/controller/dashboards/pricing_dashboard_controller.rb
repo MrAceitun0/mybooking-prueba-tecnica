@@ -11,7 +11,7 @@ module Controller
             @title = "Listado de Tarifas"
   
             if result.success?
-              erb :pricing_dashboard_simple
+              erb :pricing_dashboard
             else
               @message = result.message
               erb :error_page
