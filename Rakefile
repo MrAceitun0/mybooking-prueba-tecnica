@@ -74,6 +74,18 @@ namespace :test do
     puts "PricingService tests completed!"
   end
 
+  desc "Run E2E tests for Pricing Dashboard Journey"
+  task :e2e => :basic_environment do
+    puts "Running E2E Tests for Pricing Dashboard Journey..."
+    puts "=" * 50
+    
+    # Run the E2E tests
+    system("bundle exec rspec spec/unit/service/pricing_dashboard_journey_spec.rb --format documentation")
+    
+    puts "=" * 50
+    puts "E2E tests completed!"
+  end
+
   desc "Run all unit tests"
   task :unit => :basic_environment do
     puts "Running All Unit Tests..."
