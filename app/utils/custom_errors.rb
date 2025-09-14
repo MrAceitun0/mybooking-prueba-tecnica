@@ -33,29 +33,4 @@ module Utils
       super(message, 500, 'DATABASE_ERROR')
     end
   end
-
-  class BusinessLogicError < ApplicationError
-    def initialize(message)
-      super(message, 422, 'BUSINESS_LOGIC_ERROR')
-    end
-  end
-
-  class UnauthorizedError < ApplicationError
-    def initialize(message = "Unauthorized access")
-      super(message, 401, 'UNAUTHORIZED')
-    end
-  end
-
-  class ForbiddenError < ApplicationError
-    def initialize(message = "Access forbidden")
-      super(message, 403, 'FORBIDDEN')
-    end
-  end
-
-  class ConflictError < ApplicationError
-    def initialize(message, resource = nil)
-      error_message = resource ? "#{resource} already exists" : message
-      super(error_message, 409, 'CONFLICT')
-    end
-  end
 end
