@@ -55,7 +55,6 @@ namespace :test do
     puts "Running ParameterValidator Unit Tests..."
     puts "=" * 50
     
-    # Run the parameter validator tests
     system("bundle exec rspec spec/unit/utils/parameter_validator_spec.rb --format documentation")
     
     puts "=" * 50
@@ -67,7 +66,6 @@ namespace :test do
     puts "Running PricingService Unit Tests..."
     puts "=" * 50
     
-    # Run the pricing service tests
     system("bundle exec rspec spec/unit/service/pricing_service_spec.rb --format documentation")
     
     puts "=" * 50
@@ -79,7 +77,6 @@ namespace :test do
     puts "Running ImportPricesService Unit Tests..."
     puts "=" * 50
     
-    # Run the import prices service tests
     system("bundle exec rspec spec/unit/service/import_prices_service_spec.rb --format documentation")
     
     puts "=" * 50
@@ -87,12 +84,11 @@ namespace :test do
   end
 
   desc "Run E2E tests for Pricing Dashboard Journey"
-  task :e2e => :basic_environment do
+  task :pricing_dashboard_journey => :basic_environment do
     puts "Running E2E Tests for Pricing Dashboard Journey..."
     puts "=" * 50
     
-    # Run the E2E tests
-    system("bundle exec rspec spec/unit/service/pricing_dashboard_journey_spec.rb --format documentation")
+    system("bundle exec rspec spec/e2e/pricing_dashboard_journey_spec.rb --format documentation")
     
     puts "=" * 50
     puts "E2E tests completed!"
@@ -103,17 +99,20 @@ namespace :test do
     puts "Running All Unit Tests..."
     puts "=" * 50
     
-    # Run all unit tests
     system("bundle exec rspec spec/unit/ --format documentation")
     
     puts "=" * 50
     puts "Unit tests completed!"
   end
-end
 
-namespace :foo do
-  desc "Foo task"
-  task :bar do
-    puts "Foo bar"
+  desc "Run all E2E tests"
+  task :e2e => :basic_environment do
+    puts "Running All Unit Tests..."
+    puts "=" * 50
+    
+    system("bundle exec rspec spec/e2e/ --format documentation")
+    
+    puts "=" * 50
+    puts "Unit tests completed!"
   end
 end
