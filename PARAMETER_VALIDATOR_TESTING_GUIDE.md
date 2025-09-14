@@ -1,5 +1,16 @@
 Parameter Tests:
-bundle exec rspec spec/unit/utils/parameter_validator_spec.rb --format documentation
+bundle exec rspec spec/
+
+E2E
+bundle exec rspec spec/e2e
+
+All unit tests 
+  bundle exec rspec spec/unit/ --format documentation
+
+Module
+  bundle exec rspec spec/unit/service/
+Specific file
+  bundle exec rspec spec/unit/utils/parameter_validator_spec.rb --format documentation
 
 
 

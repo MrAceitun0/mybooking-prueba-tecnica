@@ -1,5 +1,5 @@
 require 'spec_helper'
-require_relative '../../../app/utils/custom_errors'
+require_relative '../../app/utils/custom_errors'
 
 RSpec.describe 'Pricing Dashboard End-to-End Journey', type: :unit do
   let(:rental_locations) do

@@ -23,9 +23,8 @@ RSpec.configure do |config|
 
   config.before(:suite) do
 
-    # Determinar el tipo de test por el patrón del archivo
     is_unit_test = RSpec.configuration.files_to_run.any? do |file|
-      file.include?('/unit/') || RSpec.configuration.filter[:unit]
+      file.include?('/unit/') || file.include?('/e2e/') || RSpec.configuration.filter[:unit]
     end
 
     # Unit testing use in-memory database => auto_migrate! for datamapper

@@ -110,45 +110,65 @@ module Service
         vehicles_data = []
         
         price_definitions.each do |price_def|
-          category_rental_location_rate_type = ::Model::CategoryRentalLocationRateType.first(
-            :price_definition_id => price_def.id,
-            :rental_location_id => rental_location_id,
-            :rate_type_id => rate_type_id
-          )
-          
-          next unless category_rental_location_rate_type
-          category = category_rental_location_rate_type.category
-          next unless category
-
-          prices = ::Model::Price.all(:price_definition_id => price_def.id)
-          
-          if season_id && season_id != ''
-            prices = prices.select { |p| p.season_id == season_id.to_i }
-          end
-          
-          if unit_name
-            prices = prices.select { |p| p.time_measurement == unit_name }
-          end
-
-          next if prices.empty?
-
-          vehicle_info = {
-            id: category.id,
-            name: category.name,
-            prices: prices.map do |price|
-              {
-                id: price.id,
-                amount: price.units,
-                unit: price.time_measurement,
-                price: price.price
-              }
-            end
-          }
-
-          vehicles_data << vehicle_info
+          vehicle_data = build_vehicle_data(price_def, rental_location_id, rate_type_id, unit_name, season_id)
+          vehicles_data << vehicle_data if vehicle_data
         end
         
         vehicles_data
+      end
+
+      def build_vehicle_data(price_definition, rental_location_id, rate_type_id, unit_name, season_id)
+        category = find_category_for_price_definition(price_definition, rental_location_id, rate_type_id)
+        return nil unless category
+
+        prices = get_filtered_prices(price_definition, season_id, unit_name)
+        return nil if prices.empty?
+
+        {
+          id: category.id,
+          name: category.name,
+          prices: format_prices(prices)
+        }
+      end
+
+      def find_category_for_price_definition(price_definition, rental_location_id, rate_type_id)
+        category_rental_location_rate_type = ::Model::CategoryRentalLocationRateType.first(
+          :price_definition_id => price_definition.id,
+          :rental_location_id => rental_location_id,
+          :rate_type_id => rate_type_id
+        )
+        
+        return nil unless category_rental_location_rate_type
+        
+        category_rental_location_rate_type.category
+      end
+
+      def get_filtered_prices(price_definition, season_id, unit_name)
+        prices = ::Model::Price.all(:price_definition_id => price_definition.id)
+        
+        prices = filter_prices_by_season(prices, season_id) if season_id && season_id != ''
+        prices = filter_prices_by_unit(prices, unit_name) if unit_name
+        
+        prices
+      end
+
+      def filter_prices_by_season(prices, season_id)
+        prices.select { |p| p.season_id == season_id.to_i }
+      end
+
+      def filter_prices_by_unit(prices, unit_name)
+        prices.select { |p| p.time_measurement == unit_name }
+      end
+
+      def format_prices(prices)
+        prices.map do |price|
+          {
+            id: price.id,
+            amount: price.units,
+            unit: price.time_measurement,
+            price: price.price
+          }
+        end
       end
     end
   end
