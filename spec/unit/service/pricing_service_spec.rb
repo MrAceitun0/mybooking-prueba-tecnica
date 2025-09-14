@@ -4,41 +4,41 @@ require_relative '../../../app/utils/custom_errors'
 RSpec.describe Service::PricingService, type: :unit do
   let(:rental_locations) do
     [
-      double('RentalLocation', id: 1, name: 'Downtown Office'),
-      double('RentalLocation', id: 2, name: 'Airport Branch'),
-      double('RentalLocation', id: 3, name: 'Shopping Mall Location')
+      double('RentalLocation', id: 1, name: 'Mao'),
+      double('RentalLocation', id: 2, name: 'Sant Lluis'),
+      double('RentalLocation', id: 3, name: 'El Toro')
     ]
   end
 
   let(:rate_types) do
     [
-      double('RateType', id: 1, name: 'Standard Rate'),
-      double('RateType', id: 2, name: 'Premium Rate'),
-      double('RateType', id: 3, name: 'Weekend Special')
+      double('RateType', id: 1, name: 'Estándar'),
+      double('RateType', id: 2, name: 'Premium'),
+      double('RateType', id: 3, name: 'Fin de semana')
     ]
   end
 
   let(:categories) do
     [
-      double('Category', id: 1, name: 'Economy Car'),
-      double('Category', id: 2, name: 'Luxury Sedan'),
-      double('Category', id: 3, name: 'SUV Vehicle')
+      double('Category', id: 1, name: 'Turismo'),
+      double('Category', id: 2, name: 'Scooter'),
+      double('Category', id: 3, name: '4x4')
     ]
   end
 
   let(:season_definitions) do
     [
-      double('SeasonDefinition', id: 1, name: 'Summer Season'),
-      double('SeasonDefinition', id: 2, name: 'Winter Season'),
-      double('SeasonDefinition', id: 3, name: 'Holiday Period')
+      double('SeasonDefinition', id: 1, name: 'Verano'),
+      double('SeasonDefinition', id: 2, name: 'Invierno'),
+      double('SeasonDefinition', id: 3, name: 'Navidad')
     ]
   end
 
   let(:seasons) do
     [
-      double('Season', id: 1, name: 'Peak Summer', season_definition_id: 1),
-      double('Season', id: 2, name: 'Off Peak Summer', season_definition_id: 1),
-      double('Season', id: 3, name: 'Winter Holiday', season_definition_id: 2)
+      double('Season', id: 1, name: 'Alta', season_definition_id: 1),
+      double('Season', id: 2, name: 'Media', season_definition_id: 1),
+      double('Season', id: 3, name: 'Baja', season_definition_id: 2)
     ]
   end
 
@@ -75,7 +75,7 @@ RSpec.describe Service::PricingService, type: :unit do
 
         expect(result).to eq(rental_locations)
         expect(result.length).to eq(3)
-        expect(result.map(&:name)).to contain_exactly('Downtown Office', 'Airport Branch', 'Shopping Mall Location')
+        expect(result.map(&:name)).to contain_exactly('Mao', 'Sant Lluis', 'El Toro')
         expect(::Model::RentalLocation).to have_received(:all)
       end
     end
@@ -115,7 +115,7 @@ RSpec.describe Service::PricingService, type: :unit do
         result = described_class.get_rate_types(1)
 
         expect(result.length).to eq(2)
-        expect(result.map(&:name)).to contain_exactly('Standard Rate', 'Premium Rate')
+        expect(result.map(&:name)).to contain_exactly('Estándar', 'Premium')
         expect(::Model::CategoryRentalLocationRateType).to have_received(:all).with(rental_location_id: 1)
         expect(::Model::RateType).to have_received(:all).with(:id => [1, 2])
       end
@@ -132,7 +132,7 @@ RSpec.describe Service::PricingService, type: :unit do
         result = described_class.get_rate_types(2)
 
         expect(result.length).to eq(1)
-        expect(result.first.name).to eq('Standard Rate')
+        expect(result.first.name).to eq('Estándar')
       end
     end
 
@@ -172,7 +172,7 @@ RSpec.describe Service::PricingService, type: :unit do
         result = described_class.get_season_definitions(1, 1)
 
         expect(result.length).to eq(2)
-        expect(result.map(&:name)).to contain_exactly('Summer Season', 'Winter Season')
+        expect(result.map(&:name)).to contain_exactly('Verano', 'Invierno')
         expect(::Model::SeasonDefinition).to have_received(:all).with(:id => [1, 2])
       end
     end
@@ -208,7 +208,7 @@ RSpec.describe Service::PricingService, type: :unit do
         result = described_class.get_seasons(1)
 
         expect(result.length).to eq(2)
-        expect(result.map(&:name)).to contain_exactly('Peak Summer', 'Off Peak Summer')
+        expect(result.map(&:name)).to contain_exactly('Alta', 'Media')
         expect(::Model::Season).to have_received(:all).with(season_definition_id: 1)
       end
 
@@ -219,7 +219,7 @@ RSpec.describe Service::PricingService, type: :unit do
         result = described_class.get_seasons(2)
 
         expect(result.length).to eq(1)
-        expect(result.first.name).to eq('Winter Holiday')
+        expect(result.first.name).to eq('Baja')
       end
     end
 
@@ -243,7 +243,7 @@ RSpec.describe Service::PricingService, type: :unit do
         expected_vehicles = [
           {
             id: 1,
-            name: 'Economy Car',
+            name: 'Turismo',
             prices: [
               { id: 1, amount: 1, unit: :days, price: 50.0 },
               { id: 2, amount: 2, unit: :days, price: 90.0 }
@@ -251,7 +251,7 @@ RSpec.describe Service::PricingService, type: :unit do
           },
           {
             id: 2,
-            name: 'Luxury Sedan',
+            name: 'Scooter',
             prices: [
               { id: 3, amount: 1, unit: :hours, price: 15.0 }
             ]
@@ -263,10 +263,10 @@ RSpec.describe Service::PricingService, type: :unit do
 
         expect(result).to be_an(Array)
         expect(result.length).to eq(2)
-        expect(result.map { |v| v[:name] }).to contain_exactly('Economy Car', 'Luxury Sedan')
+        expect(result.map { |v| v[:name] }).to contain_exactly('Turismo', 'Scooter')
         
         # Test Economy Car prices
-        economy_car = result.find { |v| v[:name] == 'Economy Car' }
+        economy_car = result.find { |v| v[:name] == 'Turismo' }
         expect(economy_car[:prices]).to be_an(Array)
         expect(economy_car[:prices].length).to eq(2)
         expect(economy_car[:prices].first[:id]).to eq(1)
@@ -279,13 +279,13 @@ RSpec.describe Service::PricingService, type: :unit do
         expect(economy_car[:prices].last[:price]).to eq(90.0)
         
         # Test Luxury Sedan prices
-        luxury_sedan = result.find { |v| v[:name] == 'Luxury Sedan' }
-        expect(luxury_sedan[:prices]).to be_an(Array)
-        expect(luxury_sedan[:prices].length).to eq(1)
-        expect(luxury_sedan[:prices].first[:id]).to eq(3)
-        expect(luxury_sedan[:prices].first[:amount]).to eq(1)
-        expect(luxury_sedan[:prices].first[:unit]).to eq(:hours)
-        expect(luxury_sedan[:prices].first[:price]).to eq(15.0)
+        scooter = result.find { |v| v[:name] == 'Scooter' }
+        expect(scooter[:prices]).to be_an(Array)
+        expect(scooter[:prices].length).to eq(1)
+        expect(scooter[:prices].first[:id]).to eq(3)
+        expect(scooter[:prices].first[:amount]).to eq(1)
+        expect(scooter[:prices].first[:unit]).to eq(:hours)
+        expect(scooter[:prices].first[:price]).to eq(15.0)
       end
     end
 
@@ -297,7 +297,7 @@ RSpec.describe Service::PricingService, type: :unit do
         expected_vehicles = [
           {
             id: 1,
-            name: 'Economy Car',
+            name: 'Turismo',
             prices: [{ id: 1, amount: 1, unit: :days, price: 50.0 }]
           }
         ]
@@ -306,7 +306,7 @@ RSpec.describe Service::PricingService, type: :unit do
         result = described_class.get_vehicles(1, 1, 2, 1)
 
         expect(result.length).to eq(1)
-        expect(result.first[:name]).to eq('Economy Car')
+        expect(result.first[:name]).to eq('Turismo')
         
         # Test Economy Car price details
         economy_car = result.first
