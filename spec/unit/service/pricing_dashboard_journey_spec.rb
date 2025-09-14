@@ -101,14 +101,14 @@ RSpec.describe 'Pricing Dashboard End-to-End Journey', type: :unit do
         .with(:id => [1, 2])
         .and_return(rate_types.select { |rt| [1, 2].include?(rt.id) })
 
-      rate_types_result = Service::PricingService.get_rate_types(rental_location_id: 1)
+      rate_types_result = Service::PricingService.get_rate_types(1)
 
       expect(rate_types_result.length).to eq(2)
       expect(rate_types_result.map(&:name)).to contain_exactly('Estándar', 'Premium')
       
       # Step 3: User selects Estándar (rate_type_id: 1) and gets season definitions
       allow(Service::PricingService).to receive(:get_price_definition_ids)
-        .with(r1, 1)
+        .with(1, 1)
         .and_return([1, 2])
       allow(Service::PricingService).to receive(:get_season_definition_ids)
         .with([1, 2])
@@ -116,7 +116,7 @@ RSpec.describe 'Pricing Dashboard End-to-End Journey', type: :unit do
       allow(::Model::SeasonDefinition).to receive(:all)
         .with(:id => [1, 2])
         .and_return(season_definitions.select { |sd| [1, 2].include?(sd.id) })
-      season_definitions_result = Service::PricingService.get_season_definitions(rental_location_id: 1, rate_type_id: 1)
+      season_definitions_result = Service::PricingService.get_season_definitions(1, 1)
       expect(season_definitions_result.length).to eq(2)
       expect(season_definitions_result.map(&:name)).to contain_exactly('Verano', 'Invierno')
       
@@ -125,29 +125,24 @@ RSpec.describe 'Pricing Dashboard End-to-End Journey', type: :unit do
         .with(season_definition_id: 1)
         .and_return(seasons.select { |s| s.season_definition_id == 1 })
       
-      seasons_result = Service::PricingService.get_seasons(season_definition_id: 1)
+      seasons_result = Service::PricingService.get_seasons(1)
       
       expect(seasons_result.length).to eq(2)
       expect(seasons_result.map(&:name)).to contain_exactly('Alta', 'Media')
       
       # Step 5: User selects Alta (season_id: 1), unit 2 (days), and gets vehicles
       allow(Service::PricingService).to receive(:get_price_definition_ids)
-        .with(rental_location_id: 1, rate_type_id: 1)
+        .with(1, 1)
         .and_return([1, 2])
       allow(Service::PricingService).to receive(:get_price_definitions_by_season_definition)
-        .with([1, 2], season_definition_id: 1)
+        .with([1, 2], 1)
         .and_return([price_definitions[0]])
       
       allow(Service::PricingService).to receive(:build_vehicles_data)
         .and_return(vehicles_data)
       
       vehicles_result = Service::PricingService
-        .get_vehicles(
-          rental_location_id: 1, 
-          rate_type_id: 1, 
-          unit_id: 2, 
-          season_definition_id: 1, 
-          season_id: 1)
+        .get_vehicles(1, 1, 2, 1, 1)
       
       # Assert that the vehicles data is returned
       expect(vehicles_result).to be_an(Array)
