@@ -62,6 +62,18 @@ namespace :test do
     puts "ParameterValidator tests completed!"
   end
 
+  desc "Run unit tests for PricingService"
+  task :pricing_service => :basic_environment do
+    puts "Running PricingService Unit Tests..."
+    puts "=" * 50
+    
+    # Run the pricing service tests
+    system("bundle exec rspec spec/unit/service/pricing_service_spec.rb --format documentation")
+    
+    puts "=" * 50
+    puts "PricingService tests completed!"
+  end
+
   desc "Run all unit tests"
   task :unit => :basic_environment do
     puts "Running All Unit Tests..."
