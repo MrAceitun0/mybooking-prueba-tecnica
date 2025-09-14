@@ -49,6 +49,32 @@ namespace :import do
   end
 end
 
+namespace :test do
+  desc "Run unit tests for ParameterValidator"
+  task :parameter_validator => :basic_environment do
+    puts "Running ParameterValidator Unit Tests..."
+    puts "=" * 50
+    
+    # Run the parameter validator tests
+    system("bundle exec rspec spec/unit/utils/parameter_validator_spec.rb --format documentation")
+    
+    puts "=" * 50
+    puts "ParameterValidator tests completed!"
+  end
+
+  desc "Run all unit tests"
+  task :unit => :basic_environment do
+    puts "Running All Unit Tests..."
+    puts "=" * 50
+    
+    # Run all unit tests
+    system("bundle exec rspec spec/unit/ --format documentation")
+    
+    puts "=" * 50
+    puts "Unit tests completed!"
+  end
+end
+
 namespace :foo do
   desc "Foo task"
   task :bar do
